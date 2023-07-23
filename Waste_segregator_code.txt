@@ -1,0 +1,175 @@
+#include <Servo.h>
+#include <LiquidCrystal.h>
+const int rs = 13, en = 22, d4 = 23, d5 = 24, d6 = 25, d7 = 26; // Setting up LCD
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+int moistValue = 0; // Setting Values
+int irValue = 0; int metalValue = 0;
+int servopin1 = 0; int servopin2 = 0;
+int distanceDry; long durationDry;
+int distanceWet; long durationWet;
+int distanceMetal; long durationMetal;
+int distance; int duration;
+// Indicate pins for Components
+int servoPin1 = 4; // Servo
+int servoPin2 = 5;
+int trig1Pin = 12; // Dry Garbage Utrasonic Sensor
+int echo1Pin = 9;
+int trig2Pin = 11; // Wet Garbage Utrasonic Sensor
+int echo2Pin = 8;
+int trig3Pin = 10; //metal Garbage Utrasonic Sensor
+int echo3Pin = 7; //-------------------------------------------------------------------------// Initiate Servo
+Servo servo1; Servo servo2; //-------------------------------------------------------------------------
+void setup()
+{
+ pinMode(3, INPUT);//ir sensor
+ pinMode(A0, INPUT);//moisture
+ pinMode(2, INPUT);//inductive //--------------------For Dry Garbage Ultrasonic Sensor-----------
+ pinMode(trig1Pin, OUTPUT);
+ pinMode(echo1Pin, INPUT); //--------------------For Wet Garbage Ultrasonic Sensor-------------
+ pinMode(trig2Pin, OUTPUT);
+ pinMode(echo2Pin, INPUT); //--------------------For metal Garbage Ultrasonic Sensor------------
+ pinMode(trig3Pin, OUTPUT);
+ pinMode(echo3Pin, INPUT); //-------------------------------------------------------------------------
+ servo1.attach(servoPin1); // Attaching the Servo
+ servo2.attach(servoPin2); //-------------------------------LCD Starting------------------------------
+ lcd.begin(16, 2); // LCD setup
+ lcd.setCursor(0, 0);
+ lcd.print("Welcome to");
+ lcd.setCursor(0, 1);
+ lcd.print("our Project");
+ delay(2000);
+ lcd.clear();
+ lcd.print("Waste");
+ lcd.setCursor(0, 1);
+ lcd.print("Segregation");
+ delay(2000);
+ lcd.clear(); //-------------------------------LCD Credits-------------------------------
+ lcd.print("By:");
+ lcd.setCursor(0, 1);
+ lcd.print("team 9");
+ delay(2000);
+ lcd.clear();
+ Serial.begin(9600);
+}//----------------------------------------------// This is for indicating if the dustbin is full or not
+void ultrasensor(int trigPin, int echoPin)
+{
+ digitalWrite(trigPin, LOW);
+ delayMicroseconds(2);
+ digitalWrite(trigPin, HIGH);
+ delayMicroseconds(10);
+ digitalWrite(trigPin, LOW);
+ duration = pulseIn(echoPin, HIGH); //Checks the Duration
+ distance = (duration * 0.034 / 2); //Calculates the distance
+}void loop()
+{
+ irValue = digitalRead(3);
+ metalValue = digitalRead(2);
+ moistValue = analogRead(A0);
+servo1.write(0); //Ultrasonic Sensor Part
+ ultrasensor(trig1Pin, echo1Pin);
+ distanceDry = distance;
+ ultrasensor(trig2Pin, echo2Pin);
+ distanceWet = distance;
+ ultrasensor(trig3Pin, echo3Pin);
+ distanceMetal = distance;
+ lcd.print("DRY WET METAL");
+ lcd.setCursor(0, 1);
+ lcd.print(distanceDry); lcd.setCursor(6, 1);
+ lcd.print(distanceWet);
+ lcd.setCursor(13, 1);
+ lcd.print(distanceMetal);
+ delay(1000);
+ lcd.clear();
+ lcd.setCursor(0, 1);
+ lcd.clear(); //------------------------Dustbin Full or NOT Part-------------------------
+ if (distanceDry <= 5 && distanceWet <= 5 && distanceMetal <= 5)
+ {
+ lcd.print("Three Bins are ");
+ lcd.setCursor(0, 1);
+ lcd.print(" Full");
+ delay(2000);
+ lcd.clear();
+ delay(450);
+ }else if (distanceDry <= 5 && distanceWet <= 5)
+ { lcd.print("1&2 Bins is Full");
+ delay(2000);
+ lcd.clear();
+ delay(450);
+ } else if (distanceWet <= 5 && distanceMetal <= 5)
+ {
+ lcd.print("2&3 Bins is Full");
+ delay(2000);
+ lcd.clear(); delay(450);
+ } else if (distanceDry <= 5 && distanceMetal <= 5)
+ { lcd.print("1&3 Bins is Full");
+ delay(2000);
+ lcd.clear();
+ delay(450);
+ }else if (distanceDry <= 5)
+ { lcd.print("Dry Bin is Full");
+ delay(2000);
+ lcd.clear();
+ delay(450);
+ } else if (distanceWet <= 5)
+ { lcd.print("Wet Bin is Full");
+ delay(2000);
+ lcd.clear();
+ delay(450);
+ } else if (distanceMetal <= 5)
+ { lcd.print("Metal Bin is Full");
+ delay(2000);
+ lcd.clear();
+ delay(450);
+ }else if(irValue == LOW)
+ { Serial.println(metalValue);
+ lcd.clear();
+ lcd.setCursor(0, 0);
+ lcd.print("Metal = ");
+ lcd.print(metalValue);
+ delay(1000);
+ Serial.println(moistValue);
+ lcd.clear();
+ lcd.setCursor(0, 0);
+ lcd.print("Moisture = ");
+ lcd.print(moistValue);
+ delay(1000);
+ lcd.clear();
+ if(metalValue == HIGH)
+{ lcd.setCursor(0, 0);
+ lcd.print("Its metalGarbage");
+ servo2.write(120);
+ delay(1000);
+ servo1.write(90);
+ delay(1000);
+ servo1.write(0);
+ delay(1000);
+ servo2.write(0);
+ delay(1000);
+ lcd.clear();
+} else if(moistValue < 1000)
+{ lcd.setCursor(0, 0);
+ lcd.print("Its wet Garbage");
+ servo2.write(180); delay(1000);
+ servo1.write(90);
+ delay(1000);
+ servo1.write(0);
+ delay(1000);
+ servo2.write(0);
+ delay(1000);
+lcd.clear();
+}else
+{
+ lcd.setCursor(0, 0);
+lcd.print("Its dry Garbage");
+ servo2.write(0);
+ delay(1000);
+ servo1.write(90);
+ delay(1000);
+ servo1.write(0);
+ delay(1000);
+ servo2.write(0);
+ delay(1000);
+lcd.clear();
+}
+ }
+}
