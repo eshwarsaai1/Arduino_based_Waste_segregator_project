@@ -1,0 +1,1 @@
+# Arduino_based_Waste_segregator_project
